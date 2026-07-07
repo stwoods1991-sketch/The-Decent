@@ -1,4 +1,5 @@
 import type { Config } from '@netlify/functions';
+import { computeScore, getSupabase, weekWindow } from './lib/supabase';
 
 const classes = ['wizard','goblin','rat','necro','gremlin','commissioner'];
 
@@ -9,10 +10,24 @@ export default async (request: Request) => {
     const body = await request.json() as Record<string, unknown>;
     const name = String(body.managerName || '').replace(/[^\p{L}\p{N} _-]/gu, '').trim().slice(0, 24);
     const floor = Number(body.floor);
-    if (!name || !Number.isInteger(floor) || floor < 1 || floor > 18 || !classes.includes(String(body.classId)) || !['victory','defeat'].includes(String(body.status))) {
+    const durationSeconds = Number(body.durationSeconds);
+    const classId = String(body.classId);
+    const status = String(body.status) as 'victory'|'defeat';
+    if (!name || !Number.isInteger(floor) || floor < 1 || floor > 18 || !Number.isInteger(durationSeconds) || durationSeconds < 0 || durationSeconds > 43_200 || !classes.includes(classId) || !['victory','defeat'].includes(status)) {
       return Response.json({ error: 'Invalid run submission' }, { status: 400 });
     }
-    return Response.json({ accepted: true, persisted: false, message: 'Validated locally; Supabase persistence is not configured yet.' }, { status: 202 });
+    const supabase = getSupabase();
+    if (!supabase) return Response.json({ accepted: true, persisted: false, message: 'Validated; Supabase is not configured.' }, { status: 202 });
+    const week = weekWindow();
+    const score = computeScore(floor, status, durationSeconds);
+    const { data: run, error: runError } = await supabase.from('submitted_runs').insert({
+      manager_name: name, class_id: classId, status, floor, duration_seconds: durationSeconds,
+      summary: { classId, status, floor }
+    }).select('id').single();
+    if (runError || !run) { console.error('run insert failed', runError); return Response.json({ error: 'Run persistence failed' }, { status: 502 }); }
+    const { error: boardError } = await supabase.from('leaderboard_entries').insert({ run_id: run.id, score, week_key: week.key });
+    if (boardError) { console.error('leaderboard insert failed', boardError); return Response.json({ error: 'Leaderboard persistence failed' }, { status: 502 }); }
+    return Response.json({ accepted: true, persisted: true, score, weekKey: week.key }, { status: 201 });
   } catch { return Response.json({ error: 'Invalid JSON' }, { status: 400 }); }
 };
 

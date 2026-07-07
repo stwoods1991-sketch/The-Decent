@@ -1,5 +1,5 @@
 import type { Config } from '@netlify/functions';
-import { getSupabase } from '../lib/supabase';
+import { getSupabase } from './lib/supabase';
 
 const IDS = ['first-blood', 'floor-5', 'floor-10', 'floor-15', 'clear', 'cursed', 'close-call', 'mythic'];
 

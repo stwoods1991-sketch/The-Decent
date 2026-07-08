@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 declare const Netlify: { env: { get(name: string): string | undefined } };
+declare const process: { env: Record<string, string | undefined> };
 
 // Server-only client. Uses the Supabase SECRET key, which bypasses RLS —
 // this is why every table has RLS on with no browser policies: the Netlify
@@ -9,8 +10,9 @@ let cached: SupabaseClient | null | undefined;
 
 export function getSupabase(): SupabaseClient | null {
   if (cached !== undefined) return cached;
-  const url = Netlify.env.get('SUPABASE_URL');
-  const key = Netlify.env.get('SUPABASE_SECRET_KEY');
+  const env = typeof Netlify !== 'undefined' ? Netlify.env : undefined;
+  const url = env?.get('SUPABASE_URL') || process.env.SUPABASE_URL;
+  const key = env?.get('SUPABASE_SECRET_KEY') || process.env.SUPABASE_SECRET_KEY;
   cached = url && key
     ? createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
     : null;

@@ -1,1 +1,1 @@
-export { FLOORS as floors } from '../data';
+export { DEEP_FLOORS as floors } from '../data';

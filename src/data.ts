@@ -1,4 +1,5 @@
-import type { ClassId, Item } from './types';
+import type { ClassId, Item, StartingBuff } from './types';
+import { EXPANDED_ITEMS } from './config/expandedItems';
 
 export const BALANCE = {
   tickMs: 250, encountersPerFloor: 4, baseEnemyHp: 220, baseEnemyAttack: 7,
@@ -17,12 +18,25 @@ export const CLASSES: Record<ClassId,{name:string;icon:string;tag:string;desc:st
  gremlin:{name:'Trade Gremlin',icon:'◆',tag:'Gold · Scaling',desc:'Turns yesterday’s mistakes into today’s leverage.',stats:[120,13,6],ability:'Buy Low: spend gold for a burst. Your attack scales with gold.'},
  commissioner:{name:'Commissioner',icon:'⚖',tag:'Control · Bulwark',desc:'The rulebook is whatever survives contact.',stats:[125,12,7],ability:'Emergency Ruling: strike, shield up, and delay the enemy.'}
 };
-export const BUFFS = [
- {title:'First-Round Reach',detail:'+18% attack. The experts hated it.',kind:'attack',amount:0.18},
- {title:'Goalie Run',detail:'+28 max HP and start fights shielded.',kind:'maxHp',amount:28},
- {title:'Advanced Metrics',detail:'+16% speed. Sample size: vibes.',kind:'speed',amount:0.16},
- {title:'Cap Circumvention',detail:'+5 defense and 20 gold.',kind:'defense',amount:5},
- {title:'Cheese Futures',detail:'+45 gold and a reroll token.',kind:'gold',amount:45},
+export const BUFFS:StartingBuff[] = [
+ {title:'First-Round Reach',detail:'+18% attack. The experts hated it.',kind:'attack',amount:.18,favored:['wizard','rat'],rarity:'Common'},
+ {title:'Goalie Run',detail:'+28 max HP and begin with 18 Shield.',kind:'maxHp',amount:28,favored:['goblin','commissioner'],rarity:'Common'},
+ {title:'Advanced Metrics',detail:'+16% attack speed. Sample size: vibes.',kind:'speed',amount:.16,favored:['rat'],rarity:'Common'},
+ {title:'Cap Circumvention',detail:'+5 defense and 20 gold.',kind:'defense',amount:5,favored:['commissioner'],rarity:'Common'},
+ {title:'Cheese Futures',detail:'+45 gold and a reroll token.',kind:'gold',amount:45,favored:['gremlin'],rarity:'Common'},
+ {title:'Waiver Priority',detail:'+14% critical-hit chance.',kind:'crit',amount:.14,favored:['wizard','rat'],rarity:'Rare'},
+ {title:'Emergency Recall',detail:'+30 starting Shield.',kind:'shield',amount:30,favored:['goblin','commissioner'],rarity:'Common'},
+ {title:'Power-Play Specialist',detail:'+25% automatic ability power.',kind:'abilityPower',amount:.25,favored:['wizard','commissioner'],rarity:'Rare'},
+ {title:'Future Considerations',detail:'+2 reroll tokens. Flexibility is a stat.',kind:'reroll',amount:2,favored:['gremlin'],rarity:'Rare'},
+ {title:'Iron Lungs',detail:'+20 max HP and +6% attack speed.',kind:'maxHp',amount:20,favored:['necro','rat'],rarity:'Common'},
+ {title:'Contract-Year Surge',detail:'+22% attack, but no guarantees after April.',kind:'attack',amount:.22,favored:['wizard','necro'],rarity:'Risky'},
+ {title:'Shot-Blocking Clinic',detail:'+7 defense. Dental plan not included.',kind:'defense',amount:7,favored:['goblin','commissioner'],rarity:'Rare'},
+ {title:'Second Wind',detail:'+35 max HP for the long descent.',kind:'maxHp',amount:35,favored:['necro'],rarity:'Rare'},
+ {title:'Line Blender',detail:'+20% attack speed.',kind:'speed',amount:.20,favored:['rat'],rarity:'Risky'},
+ {title:'Hot Hand',detail:'+18% critical-hit chance.',kind:'crit',amount:.18,favored:['wizard'],rarity:'Risky'},
+ {title:'Buy-Low Window',detail:'+65 gold. Spend it before it corrects.',kind:'gold',amount:65,favored:['gremlin'],rarity:'Rare'},
+ {title:'Illegal Curve',detail:'+32% automatic ability power.',kind:'abilityPower',amount:.32,favored:['wizard','necro'],rarity:'Risky'},
+ {title:'Taxi Squad',detail:'+22 Shield and +1 reroll token.',kind:'shield',amount:22,favored:['goblin','gremlin'],rarity:'Rare'},
 ];
 export const ITEMS: Item[] = [
  // Weapons — attack
@@ -83,6 +97,7 @@ export const ITEMS: Item[] = [
  {id:'glory',name:'Frozen Moment of Glory',slot:'Relic',rarity:'Legendary',stat:'speed',value:0.24},
  {id:'trade',name:'The Trade That Broke the League',slot:'Relic',rarity:'Mythic',stat:'attack',value:26,set:'Commissioner',effect:{kind:'abilityPower',value:.50,description:'Automatic abilities deal 50% more damage.'}},
  {id:'badbeat',name:'Relic of the Bad Beat',slot:'Relic',rarity:'Cursed',stat:'attack',value:14,set:'Injury Report',effect:{kind:'execute',value:.40,description:'Deal 40% more damage to enemies below 30% HP.'},curse:'Enemy attack +8%'},
+ ...EXPANDED_ITEMS,
 ];
 export const ENEMY_NAMES = ['Waiver Rat','Injured Goblin','Bench Gremlin','Stat Mite','Tilt Imp','Bad Beat Bat','Lineup Skeleton','Frozen Puck Wraith','Trade Deadline Hag','Goalie Mask Mimic','Cursed Spreadsheet','Overthinking Ooze','Sleeper Pick Slime','Bye Week Phantom'];
 export const BOSSES:Record<number,{name:string;mechanic:string;intro:string}> = {

@@ -13,7 +13,7 @@ export default async (request: Request) => {
     const durationSeconds = Number(body.durationSeconds);
     const classId = String(body.classId);
     const status = String(body.status) as 'victory'|'defeat';
-    if (!name || !Number.isInteger(floor) || floor < 1 || floor > 18 || !Number.isInteger(durationSeconds) || durationSeconds < 0 || durationSeconds > 43_200 || !classes.includes(classId) || !['victory','defeat'].includes(status)) {
+    if (!name || !Number.isInteger(floor) || floor < 1 || floor > 40 || !Number.isInteger(durationSeconds) || durationSeconds < 0 || durationSeconds > 86_400 || !classes.includes(classId) || !['victory','defeat'].includes(status)) {
       return Response.json({ error: 'Invalid run submission' }, { status: 400 });
     }
     const supabase = getSupabase();
@@ -22,7 +22,8 @@ export default async (request: Request) => {
     const score = computeScore(floor, status, durationSeconds);
     const { data: run, error: runError } = await supabase.from('submitted_runs').insert({
       manager_name: name, class_id: classId, status, floor, duration_seconds: durationSeconds,
-      summary: { classId, status, floor }
+      score, week_key: week.key,
+      summary: { classId, status, floor, campaignCleared: !!body.campaignCleared }
     }).select('id').single();
     if (runError || !run) { console.error('run insert failed', runError); return Response.json({ error: 'Run persistence failed' }, { status: 502 }); }
     const { error: boardError } = await supabase.from('leaderboard_entries').insert({ run_id: run.id, score, week_key: week.key });

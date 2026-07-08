@@ -10,6 +10,8 @@ export const BALANCE = {
 };
 export const FLOORS = [
  'The Draft Lobby','The Waiver Wire Sewers','The Bench Point Catacombs','The Injury Report Clinic','The Goalie Graveyard','The Trade Deadline Bazaar','The Parlays Pit','The Stat Correction Archives','The Rivalry Tunnel','The Tilted Manager Tavern','The Frozen Lineup Wastes','The Bye Week Abyss','The Bad Beat Casino','The Sleeper Pick Sanctum','The Playoff Bubble','The Commissioner’s Court','The Championship Gate','The Final Floor'];
+export const DEEP_FLOORS = [...FLOORS,
+ 'The Overtime Tunnel','The Salary Cap Mausoleum','The Dynasty Keep','The Deep Waiver Mine','The Broken Bracket','The Black-Ice Causeway','The Keeper League Crypt','The Luxury Tax Furnace','The Forgotten Prospect Vault','The Stat Padder Foundry','The Penalty Kill Labyrinth','The Empty Net Expanse','The Arbitration Pit','The Sleeper Abyss','The Injury Fog','The Rival GM War Room','The Trade Tree Gallows','The Cup Mirage','The Infinite Spreadsheet','The Depth Chart Core'];
 export const CLASSES: Record<ClassId,{name:string;icon:string;tag:string;desc:string;stats:[number,number,number];ability:string}> = {
  wizard:{name:'Waiver Wizard',icon:'✦',tag:'Burst · Lifesteal',desc:'Finds value where sensible managers see garbage.',stats:[115,14,5],ability:'Claim Priority: a 340% arcane nuke that siphons life.'},
  goblin:{name:'Goalie Goblin',icon:'⬡',tag:'Shield · Thorns',desc:'A tiny fortress with deeply territorial pads.',stats:[125,10,7],ability:'Stonewall: strike and refresh a modest shield.'},
@@ -105,4 +107,10 @@ export const BOSSES:Record<number,{name:string;mechanic:string;intro:string}> = 
  10:{name:'The Tilted Tavern King',mechanic:'Last Call: enrages as the fight drags on.',intro:'The King rings a bell. Nobody remembers ordering despair.'},
  15:{name:'The Bubble Beast',mechanic:'Bubble Pressure: stacking defense shred.',intro:'Every projection says you are “just outside.”'},
  18:{name:'The Final Commissioner of Chaos',mechanic:'Emergency Powers: counters shields and disables healing.',intro:'The bylaws unfold. They are mostly teeth.'}
+};
+export const DEEP_BOSSES:Record<number,{name:string;mechanic:string;intro:string}> = {...BOSSES,
+ 25:{name:'The Keeper Crypt Warden',mechanic:'Keeper Tax: punishes weak long-term scaling.',intro:'It remembers every pick you dropped too early.'},
+ 30:{name:'The Empty Net Executioner',mechanic:'Desperation Pull: damage spikes below 35% HP.',intro:'The net is empty. The math is not kind.'},
+ 35:{name:'The Rival GM Prime',mechanic:'Counterbuild: pressure rises with your cursed gear.',intro:'Someone read your roster and hated it professionally.'},
+ 40:{name:'The Depth Chart Devourer',mechanic:'Final Depth: tests damage, sustain, and every shortcut you took.',intro:'There is no bench left. Only descent.'}
 };

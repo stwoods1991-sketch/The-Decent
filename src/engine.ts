@@ -1,4 +1,4 @@
-import { BALANCE, BOSSES, BUFFS, CLASSES, ENEMY_NAMES, FLOORS, ITEMS } from './data';
+import { BALANCE, DEEP_BOSSES, DEEP_FLOORS, BUFFS, CLASSES, ENEMY_NAMES, ITEMS } from './data';
 import type { ClassId, Enemy, Hero, Item, Reward, RunState, StartingBuff } from './types';
 export const initial:RunState={screen:'menu',hero:null,floor:1,encounter:1,enemy:null,heroClock:0,enemyClock:0,abilityClock:0,log:[],rewards:[],telemetry:{damage:[],healing:[],elapsed:0,encounterElapsed:0},paused:false,seed:Date.now(),achievements:[]};
 const rng=(seed:number)=>{const x=Math.sin(seed)*10000;return x-Math.floor(x)};
@@ -6,7 +6,7 @@ const rng=(seed:number)=>{const x=Math.sin(seed)*10000;return x-Math.floor(x)};
 // against a persistent browser set to decide what is newly earned and posts it to the feed.
 function award(n:RunState,id:string){if(!n.achievements.includes(id))n.achievements.push(id);}
 export function heroFor(name:string,classId:ClassId):Hero { const c=CLASSES[classId], [maxHp,attack,defense]=c.stats; return {name,classId,maxHp,hp:maxHp,attack,defense,speed:classId==='rat'?1.15:1,crit:.08,abilityPower:1,shield:classId==='goblin'?Math.round(maxHp*.10):0,gold:0,essence:0,rerolls:1,buffs:[],gear:[]}; }
-export function enemyFor(floor:number,encounter:number,hero:Hero):Enemy { const boss=!!BOSSES[floor]&&encounter===BALANCE.encountersPerFloor; const act=BALANCE.difficultyActMultipliers[Math.min(3,Math.floor((floor-1)/5))]; const curse=hero.gear.filter(i=>i.rarity==='Cursed').length; const hp=Math.round(BALANCE.baseEnemyHp*Math.pow(1+BALANCE.enemyHpPerFloor,floor-1)*act*(boss?BALANCE.bossHpMultiplier:1)); const attack=Math.round(BALANCE.baseEnemyAttack*Math.pow(1+BALANCE.enemyAttackPerFloor,floor-1)*act*(boss?BALANCE.bossAttackMultiplier:1)*(1+curse*.08)); return {name:boss?BOSSES[floor].name:ENEMY_NAMES[(floor*3+encounter)%ENEMY_NAMES.length],maxHp:hp,hp,attack,defense:Math.floor(floor*.7),speed:.72+floor*.012,boss,mechanic:boss?BOSSES[floor].mechanic:undefined,phase:0}; }
+export function enemyFor(floor:number,encounter:number,hero:Hero):Enemy { const boss=!!DEEP_BOSSES[floor]&&encounter===BALANCE.encountersPerFloor; const act=BALANCE.difficultyActMultipliers[Math.min(3,Math.floor((floor-1)/5))]*(floor>18?1+(floor-18)*.045:1); const curse=hero.gear.filter(i=>i.rarity==='Cursed').length; const hp=Math.round(BALANCE.baseEnemyHp*Math.pow(1+BALANCE.enemyHpPerFloor,floor-1)*act*(boss?BALANCE.bossHpMultiplier:1)); const attack=Math.round(BALANCE.baseEnemyAttack*Math.pow(1+BALANCE.enemyAttackPerFloor,floor-1)*act*(boss?BALANCE.bossAttackMultiplier:1)*(1+curse*.08)); return {name:boss?DEEP_BOSSES[floor].name:ENEMY_NAMES[(floor*3+encounter)%ENEMY_NAMES.length],maxHp:hp,hp,attack,defense:Math.floor(floor*.7),speed:.72+floor*.012,boss,mechanic:boss?DEEP_BOSSES[floor].mechanic:undefined,phase:0}; }
 const damage=(attack:number,defense:number)=>Math.max(1,Math.round(attack*100/(100+defense*7)));
 const effectTotal=(h:Hero,kind:NonNullable<Item['effect']>['kind'])=>h.gear.reduce((sum,item)=>sum+(item.effect?.kind===kind?item.effect.value:0),0);
 const setCount=(h:Hero,set:NonNullable<Item['set']>)=>h.gear.filter(item=>item.set===set).length;
@@ -36,7 +36,7 @@ export function tick(s:RunState):RunState { if(s.screen!=='battle'||!s.hero||!s.
  if(e.hp<=0)return victory(n);
  if(e.boss&&n.telemetry.encounterElapsed>0&&Math.floor(n.telemetry.encounterElapsed)%20===0&&Math.floor(s.telemetry.encounterElapsed)!==Math.floor(n.telemetry.encounterElapsed))n.log.unshift(`⚠ ${e.mechanic}`);
  if(h.hp<=0){n.screen='summary';n.won=false;n.log.unshift(`${h.name} has been mathematically eliminated.`)}n.log=n.log.slice(0,30);return n; }
-function victory(n:RunState):RunState { const h=n.hero!;const e=n.enemy!;award(n,'first-blood');if(e.boss&&h.hp/h.maxHp<0.10)award(n,'close-call');const gi=BALANCE.goldIncome+n.floor*2;h.gold+=h.classId==='gremlin'?Math.round(gi*2.0):setCount(h,'Treasure Hunter')>=2?Math.round(gi*1.4):gi;h.essence+=1; n.log.unshift(`${n.enemy!.name} falls. The projections apologize.`); const last=n.floor===18&&n.encounter===BALANCE.encountersPerFloor;if(last){award(n,'clear');n.screen='summary';n.won=true;return n} const checkpoint=n.encounter%BALANCE.rewardEvery===0||n.enemy!.boss; if(checkpoint){n.screen='reward';n.rewards=makeRewards(n)} else advance(n); return n; }
+function victory(n:RunState):RunState { const h=n.hero!;const e=n.enemy!;award(n,'first-blood');if(e.boss&&h.hp/h.maxHp<0.10)award(n,'close-call');const gi=BALANCE.goldIncome+n.floor*2;h.gold+=h.classId==='gremlin'?Math.round(gi*2.0):setCount(h,'Treasure Hunter')>=2?Math.round(gi*1.4):gi;h.essence+=1; n.log.unshift(`${n.enemy!.name} falls. The projections apologize.`); const maxFloor=n.maxFloor||18; const campaignClear=n.floor===18&&n.encounter===BALANCE.encountersPerFloor;if(campaignClear){award(n,'clear');n.campaignCleared=true;n.log.unshift('Floor 18 cleared. The deep descent is now a push run.')} const last=n.floor>=maxFloor&&n.encounter===BALANCE.encountersPerFloor;if(last){n.screen='summary';n.won=true;return n} const checkpoint=n.encounter%BALANCE.rewardEvery===0||n.enemy!.boss||campaignClear; if(checkpoint){n.screen='reward';n.rewards=makeRewards(n)} else advance(n); return n; }
 export function advance(n:RunState){if(n.encounter>=BALANCE.encountersPerFloor){n.floor++;n.encounter=1}else n.encounter++;if(n.floor===5)award(n,'floor-5');if(n.floor===10)award(n,'floor-10');if(n.floor===15)award(n,'floor-15');const H=n.hero!;grantHealing(n,Math.round(H.maxHp*BALANCE.encounterRest));n.enemy=enemyFor(n.floor,n.encounter,H);H.shield=openingShield(H);n.heroClock=n.enemyClock=n.abilityClock=0;n.firstStrikeUsed=false;n.telemetry.encounterElapsed=0;n.screen='battle';n.paused=false;}
 // Seeded PRNG (mulberry32) for loot — well-distributed, distinct per checkpoint,
 // unlike the sin-based combat rng which smeared badly at large seeds.
@@ -58,7 +58,7 @@ export function applyStartingBuff(s:RunState,b:StartingBuff):RunState{
  if(b.kind==='shield'){h.shield+=b.amount;if(b.title==='Taxi Squad')h.rerolls++}
  if(b.kind==='abilityPower')h.abilityPower+=b.amount;
  if(b.kind==='reroll')h.rerolls+=b.amount;
- n.enemy=enemyFor(1,1,h);n.screen='battle';n.log=[`Opening perk: ${b.title}.`,`You enter ${FLOORS[0]}. Nobody has read the waiver.`];return n;
+ n.enemy=enemyFor(1,1,h);n.screen='battle';n.log=[`Opening perk: ${b.title}.`,`You enter ${DEEP_FLOORS[0]}. Nobody has read the waiver.`];return n;
 }
 
 // Rarity odds shift with depth: shallow floors skew Common/Uncommon, deep floors

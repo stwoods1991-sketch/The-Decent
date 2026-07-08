@@ -52,3 +52,4 @@
 @media(max-width:760px){.synergyGrid{grid-template-columns:1fr}}
 .rewardCard p{height:auto;min-height:54px}
 .newRunButton{background:transparent;border:1px solid #4b5551;color:#aab3af;padding:9px 13px;text-transform:uppercase;font-size:9px;font-weight:800;letter-spacing:1px;white-space:nowrap}.newRunButton:hover{border-color:#b85a52;color:#e08a82}@media(max-width:760px){.gameTop{padding:0 12px}.gameTop>b{font-size:16px}.newRunButton{padding:8px 10px}}
+.classCard>img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 6px 8px #000);flex:0 0 64px}.portrait img{width:92px;height:92px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 8px 8px #000)}.enemy .portrait img{filter:drop-shadow(0 8px 8px #000) saturate(.9)}.shell footer a{color:#6f7b76;text-decoration:none}.shell footer a:hover{color:var(--gold)}

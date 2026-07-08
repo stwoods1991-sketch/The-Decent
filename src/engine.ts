@@ -1,4 +1,4 @@
-import { BALANCE, BOSSES, BUFFS, CLASSES, ENEMY_NAMES, ITEMS } from './data';
+import { BALANCE, BOSSES, BUFFS, CLASSES, ENEMY_NAMES, FLOORS, ITEMS } from './data';
 import type { ClassId, Enemy, Hero, Item, Reward, RunState, StartingBuff } from './types';
 export const initial:RunState={screen:'menu',hero:null,floor:1,encounter:1,enemy:null,heroClock:0,enemyClock:0,abilityClock:0,log:[],rewards:[],telemetry:{damage:[],healing:[],elapsed:0,encounterElapsed:0},paused:false,seed:Date.now(),achievements:[]};
 const rng=(seed:number)=>{const x=Math.sin(seed)*10000;return x-Math.floor(x)};
@@ -45,6 +45,20 @@ function mulberry32(a:number){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math
 export function startingBuffChoices(seed:number,classId:ClassId):StartingBuff[]{
  const classSalt=[...classId].reduce((sum,c)=>sum+c.charCodeAt(0),0);const rand=mulberry32((seed^Math.imul(classSalt,2654435761))>>>0);
  return BUFFS.map(buff=>({buff,score:rand()+(buff.favored?.includes(classId)?.32:0)-(buff.rarity==='Risky'?.04:0)})).sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.buff);
+}
+
+export function applyStartingBuff(s:RunState,b:StartingBuff):RunState{
+ const n=structuredClone(s),h=n.hero!;h.buffs.push(b.title);
+ if(b.kind==='attack')h.attack=Math.round(h.attack*(1+b.amount));
+ if(b.kind==='maxHp'){h.maxHp+=b.amount;h.hp=h.maxHp;if(b.title==='Goalie Run')h.shield+=18}
+ if(b.kind==='speed')h.speed+=b.amount;
+ if(b.kind==='defense'){h.defense+=b.amount;if(b.title==='Cap Circumvention')h.gold+=20}
+ if(b.kind==='gold'){h.gold+=b.amount;if(b.title==='Cheese Futures')h.rerolls++}
+ if(b.kind==='crit')h.crit+=b.amount;
+ if(b.kind==='shield'){h.shield+=b.amount;if(b.title==='Taxi Squad')h.rerolls++}
+ if(b.kind==='abilityPower')h.abilityPower+=b.amount;
+ if(b.kind==='reroll')h.rerolls+=b.amount;
+ n.enemy=enemyFor(1,1,h);n.screen='battle';n.log=[`Opening perk: ${b.title}.`,`You enter ${FLOORS[0]}. Nobody has read the waiver.`];return n;
 }
 
 // Rarity odds shift with depth: shallow floors skew Common/Uncommon, deep floors
